@@ -1,0 +1,81 @@
+import React from 'react';
+import { type LucideIcon } from 'lucide-react';
+
+type Status =
+  | 'Normal - 18°C to 30°C'
+  | 'Harmful - May cause stress or illness'
+  | 'Harmful - Risk of heat stress or death'
+  | 'Normal - 50% to 70%'
+  | 'Warning - May cause dehydration, respiratory stress, poor air quality'
+  | 'Warning - Increased risk of disease'
+  | 'Safe - Normal ventilation'
+  | 'Ventilation should be improved; Acceptable short-term - Mild stress'
+  | 'Hazardous - Respiratory distress; immediate ventilation improvement is required'
+  | 'Ideal (Safe) - Best condition. No harm to poultry or workers. Promotes healthy growth & respiration'
+  | 'Acceptable (Not Ideal) - Prolonged exposure may cause mild stress or irritation. Improve litter/ventilation'
+  | 'Harmful - Unsafe. Risk of respiratory disease, eye irritation, poor growth. Immediate action needed';
+
+
+interface MetricCardProps {
+  title: string;
+  value: number;
+  unit?: string;
+  icon: LucideIcon;
+  color: 'blue' | 'green' | 'yellow' | 'red';
+  trend?: {
+    value: number;
+    isPositive: boolean;
+  };
+ status?: Status;
+}
+
+const MetricCard: React.FC<MetricCardProps> = ({ title, value, unit, icon: Icon, color, status }) => {
+  const colorClasses = {
+    blue: 'bg-blue-50 text-blue-600 border-blue-200',
+    green: 'bg-green-50 text-green-600 border-green-200',
+    yellow: 'bg-yellow-50 text-yellow-600 border-yellow-200',
+    red: 'bg-red-50 text-red-600 border-red-200'
+  };
+
+  const iconBgClasses = {
+    blue: 'bg-blue-100',
+    green: 'bg-green-100',
+    yellow: 'bg-yellow-100',
+    red: 'bg-red-100'
+  };
+
+  const getStatusClass = (status: Status) => {
+  if (
+    status.includes('Harmful') ||
+    status.includes('Hazardous') ||
+    status.includes('Risk')
+  ) return 'text-red-600';
+  if (status.includes('Warning') || status.includes('Acceptable')) return 'text-yellow-600';
+  return 'text-green-600'; // Normal / Safe / Ideal
+};
+
+  return (
+    <div className={`rounded-xl border p-6 transition-all duration-200 hover:shadow-lg hover:-translate-y-1 ${colorClasses[color]}`}>
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-sm font-medium text-gray-600">{title}</p>
+          <div className="flex items-baseline mt-2">
+            <p className="text-2xl font-bold text-gray-900">{value}</p>
+            {unit && <span className="ml-1 text-sm text-gray-500">{unit}</span>}
+          </div>
+     {status && (
+  <p className={`mt-1 text-sm font-medium ${getStatusClass(status)}`}>
+    {status}
+  </p>
+)}
+
+        </div>
+        <div className={`p-3 rounded-lg ${iconBgClasses[color]}`}>
+          <Icon className="h-6 w-6" />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default MetricCard;
