@@ -83,10 +83,10 @@ export const mockBatches: Batch[] = [
 
 
 export const mockDailyLogs: DailyLog[] = [
-  { id: '1', user_id: 1, batch_id: 'B001', date: '2024-01-16', mortality_id: 2, feed: 45.5 },
-  { id: '2', user_id: 1, batch_id: 'B001', date: '2024-01-17', mortality_id: 1, feed: 47.2 },
-  { id: '3',user_id: 1, batch_id: 'B002', date: '2024-02-02', mortality_id: 2, feed: 38.1 },
-  { id: '4', user_id: 1, batch_id: 'B002', date: '2024-02-03', mortality_id: 1, feed: 39.5 }
+  { id: '1', user_id: 1, batch_id: 'B001', date: '2024-01-16', mortality_id: 2, quantity: 2 },
+  { id: '2', user_id: 1, batch_id: 'B001', date: '2024-01-17', mortality_id: 1, quantity: 1 },
+  { id: '3', user_id: 1, batch_id: 'B002', date: '2024-02-02', mortality_id: 2, quantity: 2 },
+  { id: '4', user_id: 1, batch_id: 'B002', date: '2024-02-03', mortality_id: 1, quantity: 1 }
 ];
 
 export const mockHarvests: Harvest[] = [
