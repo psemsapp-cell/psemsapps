@@ -18,7 +18,7 @@ const Dashboard: React.FC = () => {
   const [mortalityData, setMortalityData] = useState([]);
 
   // ─── Fix 1: Notifications persisted in localStorage (7-day filter) ─────────
-  const [notifications, setNotifications] = useState<{type: string, message: string, time: Date}[]>(() => {
+  const [notifications, setNotifications] = useState<{type: string, message: string, time: Date, isActive?: boolean}[]>(() => {
     const saved = localStorage.getItem('psems_notifications');
     if (!saved) return [];
     const parsed = JSON.parse(saved);
@@ -29,13 +29,13 @@ const Dashboard: React.FC = () => {
   });
 
   const addNotification = (type: string, message: string) => {
-    setNotifications(prev => {
-      const newEntry = { type, message, time: new Date() };
-      const updated = [newEntry, ...prev];
-      localStorage.setItem('psems_notifications', JSON.stringify(updated));
-      return updated;
-    });
-  };
+  setNotifications(prev => {
+    const newEntry = { type, message, time: new Date(), isActive: true };
+    const updated = [newEntry, ...prev];
+    localStorage.setItem('psems_notifications', JSON.stringify(updated));
+    return updated;
+  });
+};
 
   const apiUrl = import.meta.env.VITE_API_URL;
   const currentUserId = localStorage.getItem('user_id');
@@ -278,10 +278,9 @@ Thank you for using PSEMS.
     };
   }, []);
 
-  const getAlertCount = (sensorData: any) => {
-    const sensors = [sensorData.temperature, sensorData.humidity, sensorData.ammonia, sensorData.carbon];
-    return sensors.filter(sensor => sensor.status !== 'Normal').length;
-  };
+const getAlertCount = (sensorData: any) => {
+  return notifications.filter(n => n.isActive !== false).length;
+};
 
   const [showNotifications, setShowNotifications] = useState(false);
   const toggleNotifications = () => setShowNotifications(prev => !prev);
@@ -320,37 +319,77 @@ Thank you for using PSEMS.
       {/* Modal Header */}
       <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
         <h2 className="text-2xl font-bold text-gray-900">Notifications</h2>
-        <button
-          onClick={() => setShowNotifications(false)}
-          className="bg-red-500 hover:bg-red-600 text-white rounded-lg w-9 h-9 flex items-center justify-center text-lg font-bold"
-        >✕</button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => {
+              const cleared = notifications.map(n => ({ ...n, isActive: false }));
+              setNotifications(cleared);
+              localStorage.setItem('psems_notifications', JSON.stringify(cleared));
+            }}
+            className="text-sm text-red-500 hover:text-red-700 font-medium px-3 py-1 border border-red-300 rounded-lg"
+          >Clear All</button>
+          <button
+            onClick={() => setShowNotifications(false)}
+            className="bg-red-500 hover:bg-red-600 text-white rounded-lg w-9 h-9 flex items-center justify-center text-lg font-bold"
+          >✕</button>
+        </div>
       </div>
 
-      {/* Notification List */}
-      <div className="overflow-y-auto flex-1 px-4 py-3 space-y-3">
-        {notifications.length === 0 && (
-          <p className="text-center text-gray-400 py-8">No alerts in the last 7 days 🎉</p>
-        )}
-        {notifications.map((n, i) => {
-          const isTemp = n.type === 'temperature';
-          const borderColor = isTemp ? 'border-orange-400' : n.type === 'humidity' ? 'border-blue-400' : n.type === 'ammonia' ? 'border-yellow-400' : 'border-green-400';
-          const label = n.type === 'temperature' ? 'Temperature Alert'
-            : n.type === 'humidity' ? 'Humidity Alert'
-            : n.type === 'ammonia' ? 'Ammonia Alert'
-            : n.type === 'system' ? 'System Alert'
-            : 'CO₂ Alert';
+      {/* Tabs */}
+      {(() => {
+        const [activeTab, setActiveTab] = React.useState<'active' | 'history'>('active');
+        const activeList = notifications.filter(n => n.isActive !== false);
+        const historyList = notifications.filter(n => n.isActive === false);
+        const displayed = activeTab === 'active' ? activeList : historyList;
 
-          return (
-            <div key={i} className={`border-l-4 ${borderColor} pl-4 py-3 bg-gray-50 rounded-r-lg`}>
-              <div className="flex items-center justify-between">
-                <span className="font-semibold text-gray-800 text-sm">{label}</span>
-                <span className="text-xs text-gray-400">{n.time.toLocaleString()}</span>
-              </div>
-              <p className="text-sm text-gray-600 mt-1">{n.message}</p>
+        return (
+          <>
+            <div className="flex border-b border-gray-100 px-6">
+              <button
+                onClick={() => setActiveTab('active')}
+                className={`py-3 px-4 text-sm font-semibold border-b-2 transition-colors ${activeTab === 'active' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500'}`}
+              >
+                Active Notifications ({activeList.length})
+              </button>
+              <button
+                onClick={() => setActiveTab('history')}
+                className={`py-3 px-4 text-sm font-semibold border-b-2 transition-colors ${activeTab === 'history' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500'}`}
+              >
+                History ({historyList.length})
+              </button>
             </div>
-          );
-        })}
-      </div>
+
+            <div className="overflow-y-auto flex-1 px-4 py-3 space-y-3">
+              {displayed.length === 0 && (
+                <p className="text-center text-gray-400 py-8">
+                  {activeTab === 'active' ? 'No active alerts 🎉' : 'No history yet'}
+                </p>
+              )}
+              {displayed.map((n, i) => {
+                const borderColor = n.type === 'temperature' ? 'border-orange-400'
+                  : n.type === 'humidity' ? 'border-blue-400'
+                  : n.type === 'ammonia' ? 'border-yellow-400'
+                  : 'border-green-400';
+                const label = n.type === 'temperature' ? 'Temperature Alert'
+                  : n.type === 'humidity' ? 'Humidity Alert'
+                  : n.type === 'ammonia' ? 'Ammonia Alert'
+                  : n.type === 'system' ? 'System Alert'
+                  : 'CO₂ Alert';
+
+                return (
+                  <div key={i} className={`border-l-4 ${borderColor} pl-4 py-3 bg-gray-50 rounded-r-lg`}>
+                    <div className="flex items-center justify-between">
+                      <span className="font-semibold text-gray-800 text-sm">{label}</span>
+                      <span className="text-xs text-gray-400">{new Date(n.time).toLocaleString()}</span>
+                    </div>
+                    <p className="text-sm text-gray-600 mt-1">{n.message}</p>
+                  </div>
+                );
+              })}
+            </div>
+          </>
+        );
+      })()}
     </div>
   </div>,
   document.body
