@@ -4,6 +4,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import MetricCard from '../components/MetricCard';
 import { initializeApp } from "firebase/app";
 import { getDatabase, ref, onValue } from "firebase/database";
+import { createPortal } from 'react-dom';
 
 const firebaseConfig = {
   databaseURL: "https://psemsapp-6ea85-default-rtdb.asia-southeast1.firebasedatabase.app",
@@ -306,62 +307,54 @@ Thank you for using PSEMS.
       </div>
 
       {/* Fix 2: Notification Modal — full-screen backdrop with explicit positioning */}
-      {showNotifications && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-          style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}
+      {showNotifications && createPortal(
+  <div
+    style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+    onClick={() => setShowNotifications(false)}
+  >
+    <div
+      className="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 flex flex-col"
+      style={{ maxHeight: '80vh' }}
+      onClick={e => e.stopPropagation()}
+    >
+      {/* Modal Header */}
+      <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+        <h2 className="text-2xl font-bold text-gray-900">Notifications</h2>
+        <button
           onClick={() => setShowNotifications(false)}
-        >
-          <div
-            className="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 flex flex-col"
-            style={{ maxHeight: '80vh' }}
-            onClick={e => e.stopPropagation()}
-          >
-            {/* Modal Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-              <h2 className="text-2xl font-bold text-gray-900">Notifications</h2>
-              <button
-                onClick={() => setShowNotifications(false)}
-                className="bg-red-500 hover:bg-red-600 text-white rounded-lg w-9 h-9 flex items-center justify-center text-lg font-bold"
-              >✕</button>
-            </div>
+          className="bg-red-500 hover:bg-red-600 text-white rounded-lg w-9 h-9 flex items-center justify-center text-lg font-bold"
+        >✕</button>
+      </div>
 
-            {/* Notification List */}
-            <div className="overflow-y-auto flex-1 px-4 py-3 space-y-3">
-              {notifications.length === 0 && (
-                <p className="text-center text-gray-400 py-8">No alerts in the last 7 days 🎉</p>
-              )}
-              {notifications.map((n, i) => {
-                const isTemp = n.type === 'temperature';
-                const borderColor = isTemp
-                  ? 'border-orange-400'
-                  : n.type === 'humidity'
-                  ? 'border-blue-400'
-                  : n.type === 'ammonia'
-                  ? 'border-yellow-400'
-                  : 'border-green-400';
-                const label = n.type === 'temperature' ? 'Temperature Alert'
-                  : n.type === 'humidity' ? 'Humidity Alert'
-                  : n.type === 'ammonia' ? 'Ammonia Alert'
-                  : n.type === 'system' ? 'System Alert'
-                  : 'CO₂ Alert';
+      {/* Notification List */}
+      <div className="overflow-y-auto flex-1 px-4 py-3 space-y-3">
+        {notifications.length === 0 && (
+          <p className="text-center text-gray-400 py-8">No alerts in the last 7 days 🎉</p>
+        )}
+        {notifications.map((n, i) => {
+          const isTemp = n.type === 'temperature';
+          const borderColor = isTemp ? 'border-orange-400' : n.type === 'humidity' ? 'border-blue-400' : n.type === 'ammonia' ? 'border-yellow-400' : 'border-green-400';
+          const label = n.type === 'temperature' ? 'Temperature Alert'
+            : n.type === 'humidity' ? 'Humidity Alert'
+            : n.type === 'ammonia' ? 'Ammonia Alert'
+            : n.type === 'system' ? 'System Alert'
+            : 'CO₂ Alert';
 
-                return (
-                  <div key={i} className={`border-l-4 ${borderColor} pl-4 py-3 bg-gray-50 rounded-r-lg`}>
-                    <div className="flex items-center justify-between">
-                      <span className="font-semibold text-gray-800 text-sm">{label}</span>
-                      <span className="text-xs text-gray-400">
-                        {n.time.toLocaleString()}
-                      </span>
-                    </div>
-                    <p className="text-sm text-gray-600 mt-1">{n.message}</p>
-                  </div>
-                );
-              })}
+          return (
+            <div key={i} className={`border-l-4 ${borderColor} pl-4 py-3 bg-gray-50 rounded-r-lg`}>
+              <div className="flex items-center justify-between">
+                <span className="font-semibold text-gray-800 text-sm">{label}</span>
+                <span className="text-xs text-gray-400">{n.time.toLocaleString()}</span>
+              </div>
+              <p className="text-sm text-gray-600 mt-1">{n.message}</p>
             </div>
-          </div>
-        </div>
-      )}
+          );
+        })}
+      </div>
+    </div>
+  </div>,
+  document.body
+)}
 
       {/* Environmental Metrics */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
