@@ -13,7 +13,7 @@ if (!API_KEY || !DEVICE_ID) {
   console.error('❌ Missing required environment variables: TEXTBEE_API_KEY, TEXTBEE_DEVICE_ID');
 }
 
-router.post('/send-sms', async (req, res) => {
+router.post('/send-sms', express.json(), async (req, res) => {
   const { phone, message } = req.body;
   if (!phone || !message) return res.status(400).json({ error: 'Phone and message required' });
 
