@@ -16,6 +16,26 @@ const Dashboard: React.FC = () => {
   const [harvestData, setHarvestData] = useState([]);
   const [mortalityData, setMortalityData] = useState([]);
 
+  // ─── Fix 1: Notifications persisted in localStorage (7-day filter) ─────────
+  const [notifications, setNotifications] = useState<{type: string, message: string, time: Date}[]>(() => {
+    const saved = localStorage.getItem('psems_notifications');
+    if (!saved) return [];
+    const parsed = JSON.parse(saved);
+    const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+    return parsed
+      .filter((n: any) => new Date(n.time).getTime() > sevenDaysAgo)
+      .map((n: any) => ({ ...n, time: new Date(n.time) }));
+  });
+
+  const addNotification = (type: string, message: string) => {
+    setNotifications(prev => {
+      const newEntry = { type, message, time: new Date() };
+      const updated = [newEntry, ...prev];
+      localStorage.setItem('psems_notifications', JSON.stringify(updated));
+      return updated;
+    });
+  };
+
   const apiUrl = import.meta.env.VITE_API_URL;
   const currentUserId = localStorage.getItem('user_id');
 
@@ -77,7 +97,6 @@ Thank you for using PSEMS.
             chickens: item.no_harvest ?? item.chickens ?? item.harvested_chickens ?? 0,
             boxes:    item.no_boxes   ?? item.boxes    ?? item.harvested_boxes    ?? 0,
           }))
-          // ✅ Filter out rows with no batch name so "Unknown" never shows on chart
           .filter((item: any) => item.batch !== null && item.batch !== '');
 
         setHarvestData(formatted);
@@ -101,7 +120,6 @@ Thank you for using PSEMS.
             mortality: item.quantity  ?? item.mortality_count ?? item.mortality ?? 0,
             cause:     item.cause ?? '',
           }))
-          // ✅ Filter out rows with no barn name
           .filter((item: any) => item.barn !== null && item.barn !== '');
 
         setMortalityData(formatted);
@@ -235,8 +253,11 @@ Thank you for using PSEMS.
             ? new Date()
             : undefined
         };
+
+        // ─── Fix 1: Also log to persistent notifications ───────────────────
         if (!status.includes('Normal') && !status.includes('Safe') && !status.includes('Ideal')) {
           sendSMSNotification(`${sensor.toUpperCase()} is ${status}! Value: ${value}`);
+          addNotification(sensor, `${status} — Value: ${value}`);
         }
       });
 
@@ -246,6 +267,7 @@ Thank you for using PSEMS.
     const unsubscribeConnected = onValue(connectedRef, snapshot => {
       if (snapshot.val() === false) {
         sendSMSNotification('Device is offline!');
+        addNotification('system', 'Device is offline!');
       }
     });
 
@@ -267,81 +289,79 @@ Thank you for using PSEMS.
   return (
     <div className="space-y-6 px-4 md:px-6 lg:px-8">
 
-     {/* Header */}
-<div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-  <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Dashboard</h1>
-  <div className="relative">
-    <Bell className="h-6 w-6 text-gray-600 cursor-pointer" onClick={toggleNotifications} />
-    {getAlertCount(sensorData) > 0 && (
-      <>
-        <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs font-bold rounded-full px-1.5">
-          {getAlertCount(sensorData)}
-        </span>
-        <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full animate-ping"></span>
-      </>
-    )}
-  </div>
-</div>
+      {/* Header */}
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Dashboard</h1>
+        <div className="relative">
+          <Bell className="h-6 w-6 text-gray-600 cursor-pointer" onClick={toggleNotifications} />
+          {getAlertCount(sensorData) > 0 && (
+            <>
+              <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs font-bold rounded-full px-1.5">
+                {getAlertCount(sensorData)}
+              </span>
+              <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full animate-ping"></span>
+            </>
+          )}
+        </div>
+      </div>
 
-{/* Notification Modal */}
-{showNotifications && (
-  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 max-h-[80vh] flex flex-col">
-      
-      {/* Modal Header */}
-      <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-        <h2 className="text-2xl font-bold text-gray-900">Notifications</h2>
-        <button
+      {/* Fix 2: Notification Modal — full-screen backdrop with explicit positioning */}
+      {showNotifications && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+          style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}
           onClick={() => setShowNotifications(false)}
-          className="bg-red-500 hover:bg-red-600 text-white rounded-lg w-9 h-9 flex items-center justify-center text-lg font-bold"
         >
-          ✕
-        </button>
-      </div>
-
-      {/* Notification List */}
-      <div className="overflow-y-auto flex-1 px-4 py-3 space-y-3">
-        {[
-          sensorData.temperature,
-          sensorData.humidity,
-          sensorData.ammonia,
-          sensorData.carbon,
-        ].map((sensor, i) => {
-          const labels = ['Temperature', 'Humidity', 'Ammonia', 'CO₂'];
-          const isAlert = !sensor.status.includes('Normal') &&
-                          !sensor.status.includes('Safe') &&
-                          !sensor.status.includes('Ideal');
-          if (!isAlert) return null;
-
-          const isTemp = i === 0;
-          const borderColor = isTemp ? 'border-orange-400' : 'border-blue-400';
-          const emoji = isTemp ? '🌡️' : i === 1 ? '💧' : i === 2 ? '💨' : '🟢';
-
-          return (
-            <div key={i} className={`border-l-4 ${borderColor} pl-4 py-3 bg-gray-50 rounded-r-lg`}>
-              <div className="flex items-center justify-between">
-                <span className="font-semibold text-gray-800">
-                  {emoji} {labels[i]} Alert
-                </span>
-                {sensor.updatedAt && (
-                  <span className="text-xs text-gray-400">
-                    {sensor.updatedAt.toLocaleString()}
-                  </span>
-                )}
-              </div>
-              <p className="text-sm text-gray-600 mt-1">{sensor.status}</p>
+          <div
+            className="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 flex flex-col"
+            style={{ maxHeight: '80vh' }}
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+              <h2 className="text-2xl font-bold text-gray-900">Notifications</h2>
+              <button
+                onClick={() => setShowNotifications(false)}
+                className="bg-red-500 hover:bg-red-600 text-white rounded-lg w-9 h-9 flex items-center justify-center text-lg font-bold"
+              >✕</button>
             </div>
-          );
-        })}
 
-        {getAlertCount(sensorData) === 0 && (
-          <p className="text-center text-gray-400 py-8">No active alerts 🎉</p>
-        )}
-      </div>
+            {/* Notification List */}
+            <div className="overflow-y-auto flex-1 px-4 py-3 space-y-3">
+              {notifications.length === 0 && (
+                <p className="text-center text-gray-400 py-8">No alerts in the last 7 days 🎉</p>
+              )}
+              {notifications.map((n, i) => {
+                const isTemp = n.type === 'temperature';
+                const borderColor = isTemp
+                  ? 'border-orange-400'
+                  : n.type === 'humidity'
+                  ? 'border-blue-400'
+                  : n.type === 'ammonia'
+                  ? 'border-yellow-400'
+                  : 'border-green-400';
+                const label = n.type === 'temperature' ? 'Temperature Alert'
+                  : n.type === 'humidity' ? 'Humidity Alert'
+                  : n.type === 'ammonia' ? 'Ammonia Alert'
+                  : n.type === 'system' ? 'System Alert'
+                  : 'CO₂ Alert';
 
-    </div>
-  </div>
-)}
+                return (
+                  <div key={i} className={`border-l-4 ${borderColor} pl-4 py-3 bg-gray-50 rounded-r-lg`}>
+                    <div className="flex items-center justify-between">
+                      <span className="font-semibold text-gray-800 text-sm">{label}</span>
+                      <span className="text-xs text-gray-400">
+                        {n.time.toLocaleString()}
+                      </span>
+                    </div>
+                    <p className="text-sm text-gray-600 mt-1">{n.message}</p>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Environmental Metrics */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
