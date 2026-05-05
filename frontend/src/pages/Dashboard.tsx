@@ -268,26 +268,81 @@ Thank you for using PSEMS.
   return (
     <div className="space-y-6 px-4 md:px-6 lg:px-8">
 
-      {/* Header */}
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-        <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Dashboard</h1>
-        <div className="relative">
-          <Bell className="h-6 w-6 text-gray-600 cursor-pointer" onClick={toggleNotifications} />
-          {getAlertCount(sensorData) > 0 && (
-            <>
-              <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs font-bold rounded-full px-1.5">
-                {getAlertCount(sensorData)}
-              </span>
-              <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full animate-ping"></span>
-            </>
-          )}
-          {showNotifications && (
-            <div className="absolute mt-3 w-72 md:w-80 bg-white shadow-lg rounded-lg border border-gray-200 p-3 z-50 right-0">
-              <SensorNotification {...sensorData} />
-            </div>
-          )}
-        </div>
+     {/* Header */}
+<div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+  <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Dashboard</h1>
+  <div className="relative">
+    <Bell className="h-6 w-6 text-gray-600 cursor-pointer" onClick={toggleNotifications} />
+    {getAlertCount(sensorData) > 0 && (
+      <>
+        <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs font-bold rounded-full px-1.5">
+          {getAlertCount(sensorData)}
+        </span>
+        <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full animate-ping"></span>
+      </>
+    )}
+  </div>
+</div>
+
+{/* Notification Modal */}
+{showNotifications && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 max-h-[80vh] flex flex-col">
+      
+      {/* Modal Header */}
+      <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+        <h2 className="text-2xl font-bold text-gray-900">Notifications</h2>
+        <button
+          onClick={() => setShowNotifications(false)}
+          className="bg-red-500 hover:bg-red-600 text-white rounded-lg w-9 h-9 flex items-center justify-center text-lg font-bold"
+        >
+          ✕
+        </button>
       </div>
+
+      {/* Notification List */}
+      <div className="overflow-y-auto flex-1 px-4 py-3 space-y-3">
+        {[
+          sensorData.temperature,
+          sensorData.humidity,
+          sensorData.ammonia,
+          sensorData.carbon,
+        ].map((sensor, i) => {
+          const labels = ['Temperature', 'Humidity', 'Ammonia', 'CO₂'];
+          const isAlert = !sensor.status.includes('Normal') &&
+                          !sensor.status.includes('Safe') &&
+                          !sensor.status.includes('Ideal');
+          if (!isAlert) return null;
+
+          const isTemp = i === 0;
+          const borderColor = isTemp ? 'border-orange-400' : 'border-blue-400';
+          const emoji = isTemp ? '🌡️' : i === 1 ? '💧' : i === 2 ? '💨' : '🟢';
+
+          return (
+            <div key={i} className={`border-l-4 ${borderColor} pl-4 py-3 bg-gray-50 rounded-r-lg`}>
+              <div className="flex items-center justify-between">
+                <span className="font-semibold text-gray-800">
+                  {emoji} {labels[i]} Alert
+                </span>
+                {sensor.updatedAt && (
+                  <span className="text-xs text-gray-400">
+                    {sensor.updatedAt.toLocaleString()}
+                  </span>
+                )}
+              </div>
+              <p className="text-sm text-gray-600 mt-1">{sensor.status}</p>
+            </div>
+          );
+        })}
+
+        {getAlertCount(sensorData) === 0 && (
+          <p className="text-center text-gray-400 py-8">No active alerts 🎉</p>
+        )}
+      </div>
+
+    </div>
+  </div>
+)}
 
       {/* Environmental Metrics */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
