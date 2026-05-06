@@ -322,13 +322,23 @@ const Reports: React.FC = () => {
     return Array.from(grouped.values());
   }, [mortalityData, selectedMonth, barnNameById]);
 
-  const latest: Forecast | null = useMemo(() => {
-    const filtered = forecastData.filter(f =>
-      f.month && String(f.month).startsWith(selectedMonth)
-    );
-    if (filtered.length > 0) return filtered[filtered.length - 1];
-    return forecastData.length > 0 ? forecastData[forecastData.length - 1] : null;
-  }, [forecastData, selectedMonth]);
+  const latest = useMemo(() => {
+  const filtered = forecastData.filter(f =>
+    f.month && String(f.month).startsWith(selectedMonth)
+  );
+
+  const source = filtered.length > 0 ? filtered : forecastData;
+
+  if (source.length === 0) return null;
+
+  return source.reduce((acc, f) => ({
+    month: f.month,
+    actualMortality: (acc.actualMortality ?? 0) + (f.actualMortality ?? 0),
+    predictedMortality: (acc.predictedMortality ?? 0) + (f.predictedMortality ?? 0),
+    actualHarvest: (acc.actualHarvest ?? 0) + (f.actualHarvest ?? 0),
+    predictedHarvest: (acc.predictedHarvest ?? 0) + (f.predictedHarvest ?? 0),
+  }));
+}, [forecastData, selectedMonth]);
 
   const batchSummaryReport = useMemo(() => {
     return batchReports.map((r) => ({
