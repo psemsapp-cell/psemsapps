@@ -11,7 +11,7 @@ exports.getAll = (callback) => {
 };
 
 // 🔹 Get daily logs with batch name and mortality cause for a specific user
-exports.getByUserId = (userId, callback) => {
+exports.getByUserId = (userId = null, callback) => {
   const sql = `
     SELECT 
       d.id,
@@ -25,10 +25,10 @@ exports.getByUserId = (userId, callback) => {
     FROM tbl_daily d
     LEFT JOIN tbl_batch    b ON d.batch_id    = b.id
     LEFT JOIN tbl_mortality m ON d.mortality_id = m.id
-    WHERE d.user_id = ?
+    WHERE 1=1
     ORDER BY d.date DESC
   `;
-  db.query(sql, [userId], (err, results) => {
+  db.query(sql, [], (err, results) => {
     if (err) {
       console.error('Database error in getByUserId:', err);
       return callback(err);
