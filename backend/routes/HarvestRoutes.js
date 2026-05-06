@@ -1,7 +1,6 @@
 const express = require('express');
 const router = express.Router();
 const controller = require('../controllers/HarvestController');
-const verifyToken = require('../middleware/authMiddleware'); // 👈 import
 
 // 🟢 Add a new harvest record
 router.post('/add_harvest', controller.addHarvest);

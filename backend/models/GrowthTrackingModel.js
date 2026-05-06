@@ -17,10 +17,11 @@ exports.getByUserId = (userId, callback) => {
     SELECT g.id, g.user_id, g.batch_id, b.batch_name, g.date, g.age, g.total_weight, g.no_chicken, g.average_weight
     FROM tbl_growth g
     LEFT JOIN tbl_batch b ON g.batch_id = b.id
-    WHERE 1=1    ORDER BY g.date DESC
+    WHERE g.user_id = ?
+    ORDER BY g.date DESC
   `;
 
-  db.query(sql, [], (err, results) => {
+  db.query(sql, [userId], (err, results) => {
     if (err) {
       console.error('Database error in getByUserId:', err);
       return callback(err);

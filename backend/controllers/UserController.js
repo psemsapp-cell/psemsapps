@@ -74,8 +74,6 @@ exports.updateUser = (req, res) => {
 };
 
 // 🔐 Login user (only admin or staff)
-const jwt = require('jsonwebtoken'); // 👈 add this at the top
-
 exports.loginUser = (req, res) => {
   const { email, password } = req.body;
 
@@ -88,14 +86,7 @@ exports.loginUser = (req, res) => {
 
     const { password: pw, ...safeUser } = results[0];
 
-    // 👇 Generate JWT token with id and role
-    const token = jwt.sign(
-      { id: safeUser.id, role: safeUser.role },
-      process.env.JWT_SECRET,
-      { expiresIn: '1d' }
-    );
-
-    res.json({ message: 'Login successful', user: safeUser, token });
+    res.json({ message: 'Login successful', user: safeUser });
   });
 };
 

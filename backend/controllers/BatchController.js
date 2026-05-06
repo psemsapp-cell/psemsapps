@@ -13,10 +13,9 @@ exports.getAllBatches = (req, res) => {
 
 // 📥 Get Batches by User ID
 exports.getBatchesByUserId = (req, res) => {
-  const userId = req.user.id;   // 👈 from token, not URL
-  const role = req.user.role;   // 👈 from token
+  const userId = req.params.user_id;
 
-  Batch.getByUserId(userId, role, (err, results) => {
+  Batch.getByUserId(userId, (err, results) => {
     if (err) {
       console.error('Database error:', err);
       return res.status(500).json({ error: 'Internal server error' });

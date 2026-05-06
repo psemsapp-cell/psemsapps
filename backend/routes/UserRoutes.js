@@ -1,7 +1,6 @@
 const express = require('express');
 const router = express.Router();
 const controller = require('../controllers/UserController');
-const verifyToken = require('../middleware/authMiddleware'); // 👈 import
 
 // 🟢 Register 
 router.post('/register', controller.addUser);

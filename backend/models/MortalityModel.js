@@ -12,7 +12,7 @@ exports.getAll = (callback) => {
 
 // 🔹 Get mortalities for a specific user
 // 🔹 Get mortalities for a specific user with barn name
-exports.getByUserId = (userId = null, callback) => {
+exports.getByUserId = (userId, callback) => {
   const sql = `
     SELECT 
       m.id,
@@ -26,11 +26,11 @@ exports.getByUserId = (userId = null, callback) => {
     FROM tbl_mortality AS m
     LEFT JOIN tbl_barn AS b
       ON m.barn_id = b.id
-    WHERE 1=1
+    WHERE m.user_id = ?
     ORDER BY m.date DESC
   `;
 
-  db.query(sql, [], (err, results) => {
+  db.query(sql, [userId], (err, results) => {
     if (err) {
       console.error('Database error in getByUserId:', err);
       return callback(err);

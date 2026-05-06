@@ -1,7 +1,6 @@
 const express = require('express');
 const router = express.Router();
 const controller = require('../controllers/MortalityController');
-const verifyToken = require('../middleware/authMiddleware'); // 👈 import
 
 // 🟢 Add a new mortality record
 router.post('/add_mortality', controller.addMortality);
