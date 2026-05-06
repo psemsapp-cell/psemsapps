@@ -125,8 +125,8 @@ const Dashboard: React.FC = () => {
   const currentUserId = localStorage.getItem('user_id');
 
   const sendSMSNotification = async (message: string) => {
-    const phoneNumber = '+639941680185';
-    const cooldownMinutes = 7;
+    const phoneNumber = '+639064344159';
+    const cooldownMinutes = 30;
 
     const lastSent = localStorage.getItem('last_sms_sent');
     const now = Date.now();
