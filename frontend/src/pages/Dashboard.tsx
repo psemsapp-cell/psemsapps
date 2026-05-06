@@ -73,11 +73,16 @@ Thank you for using PSEMS.
           sender: 'PSEMS SMART BOT'
         })
       });
-      const data = await res.json();
-      console.log('SMS sent via proxy:', data);
-      localStorage.setItem('last_sms_sent', now.toString());
+      const text = await res.text();
+      try {
+        const data = JSON.parse(text);
+        console.log('SMS sent:', data);
+      } catch {
+        console.error('SMS server error (non-JSON response):', text.slice(0, 200));
+      }
+      localStorage.setItem('last_sms_sent', String(now));
     } catch (err) {
-      console.error('SMS failed:', err);
+      console.error('Failed to send SMS:', err);
     }
   };
 
@@ -450,9 +455,11 @@ const getAlertCount = (sensorData: any) => {
           onChange={e => setForecastFilters({ ...forecastFilters, batchId: e.target.value })}
         >
           <option value="">All Batches</option>
-          {Array.from(new Set(forecastData.map((f: any) => f.batchId))).map(id => (
-            <option key={id} value={id}>Batch {id}</option>
-          ))}
+         {Array.from(
+  new Map(forecastData.map((f: any) => [f.batchId, f.batch])).entries()
+).map(([id, name]) => (
+  <option key={id} value={id}>{name}</option>
+))}
         </select>
         <select
           className="border rounded px-3 py-2"
