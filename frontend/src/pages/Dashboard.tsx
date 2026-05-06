@@ -11,6 +11,90 @@ const firebaseConfig = {
 };
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
+const NotificationModal = ({
+  notifications,
+  setNotifications,
+  onClose,
+}: {
+  notifications: { type: string; message: string; time: Date; isActive?: boolean }[];
+  setNotifications: React.Dispatch<React.SetStateAction<{ type: string; message: string; time: Date; isActive?: boolean }[]>>;
+  onClose: () => void;
+}) => {
+  const [activeTab, setActiveTab] = useState<'active' | 'history'>('active');
+  const activeList = notifications.filter(n => n.isActive !== false);
+  const historyList = notifications.filter(n => n.isActive === false);
+  const displayed = activeTab === 'active' ? activeList : historyList;
+
+  return (
+    <div
+      style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+      onClick={onClose}
+    >
+      <div
+        className="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 flex flex-col"
+        style={{ maxHeight: '80vh' }}
+        onClick={e => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+          <h2 className="text-2xl font-bold text-gray-900">Notifications</h2>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => {
+                const cleared = notifications.map(n => ({ ...n, isActive: false }));
+                setNotifications(cleared);
+                localStorage.setItem('psems_notifications', JSON.stringify(cleared));
+              }}
+              className="text-sm text-red-500 hover:text-red-700 font-medium px-3 py-1 border border-red-300 rounded-lg"
+            >Clear All</button>
+            <button
+              onClick={onClose}
+              className="bg-red-500 hover:bg-red-600 text-white rounded-lg w-9 h-9 flex items-center justify-center text-lg font-bold"
+            >✕</button>
+          </div>
+        </div>
+
+        <div className="flex border-b border-gray-100 px-6">
+          <button
+            onClick={() => setActiveTab('active')}
+            className={`py-3 px-4 text-sm font-semibold border-b-2 transition-colors ${activeTab === 'active' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500'}`}
+          >Active Notifications ({activeList.length})</button>
+          <button
+            onClick={() => setActiveTab('history')}
+            className={`py-3 px-4 text-sm font-semibold border-b-2 transition-colors ${activeTab === 'history' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500'}`}
+          >History ({historyList.length})</button>
+        </div>
+
+        <div className="overflow-y-auto flex-1 px-4 py-3 space-y-3">
+          {displayed.length === 0 && (
+            <p className="text-center text-gray-400 py-8">
+              {activeTab === 'active' ? 'No active alerts 🎉' : 'No history yet'}
+            </p>
+          )}
+          {displayed.map((n, i) => {
+            const borderColor = n.type === 'temperature' ? 'border-orange-400'
+              : n.type === 'humidity' ? 'border-blue-400'
+              : n.type === 'ammonia' ? 'border-yellow-400'
+              : 'border-green-400';
+            const label = n.type === 'temperature' ? 'Temperature Alert'
+              : n.type === 'humidity' ? 'Humidity Alert'
+              : n.type === 'ammonia' ? 'Ammonia Alert'
+              : n.type === 'system' ? 'System Alert'
+              : 'CO₂ Alert';
+            return (
+              <div key={i} className={`border-l-4 ${borderColor} pl-4 py-3 bg-gray-50 rounded-r-lg`}>
+                <div className="flex items-center justify-between">
+                  <span className="font-semibold text-gray-800 text-sm">{label}</span>
+                  <span className="text-xs text-gray-400">{new Date(n.time).toLocaleString()}</span>
+                </div>
+                <p className="text-sm text-gray-600 mt-1">{n.message}</p>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const Dashboard: React.FC = () => {
 
@@ -313,92 +397,12 @@ const getAlertCount = () => {
       </div>
 
       {/* Fix 2: Notification Modal — full-screen backdrop with explicit positioning */}
-      {showNotifications && createPortal(
-  <div
-    style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-    onClick={() => setShowNotifications(false)}
-  >
-    <div
-      className="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 flex flex-col"
-      style={{ maxHeight: '80vh' }}
-      onClick={e => e.stopPropagation()}
-    >
-      {/* Modal Header */}
-      <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-        <h2 className="text-2xl font-bold text-gray-900">Notifications</h2>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => {
-              const cleared = notifications.map(n => ({ ...n, isActive: false }));
-              setNotifications(cleared);
-              localStorage.setItem('psems_notifications', JSON.stringify(cleared));
-            }}
-            className="text-sm text-red-500 hover:text-red-700 font-medium px-3 py-1 border border-red-300 rounded-lg"
-          >Clear All</button>
-          <button
-            onClick={() => setShowNotifications(false)}
-            className="bg-red-500 hover:bg-red-600 text-white rounded-lg w-9 h-9 flex items-center justify-center text-lg font-bold"
-          >✕</button>
-        </div>
-      </div>
-
-      {/* Tabs */}
-      {(() => {
-        const [activeTab, setActiveTab] = React.useState<'active' | 'history'>('active');
-        const activeList = notifications.filter(n => n.isActive !== false);
-        const historyList = notifications.filter(n => n.isActive === false);
-        const displayed = activeTab === 'active' ? activeList : historyList;
-
-        return (
-          <>
-            <div className="flex border-b border-gray-100 px-6">
-              <button
-                onClick={() => setActiveTab('active')}
-                className={`py-3 px-4 text-sm font-semibold border-b-2 transition-colors ${activeTab === 'active' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500'}`}
-              >
-                Active Notifications ({activeList.length})
-              </button>
-              <button
-                onClick={() => setActiveTab('history')}
-                className={`py-3 px-4 text-sm font-semibold border-b-2 transition-colors ${activeTab === 'history' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500'}`}
-              >
-                History ({historyList.length})
-              </button>
-            </div>
-
-            <div className="overflow-y-auto flex-1 px-4 py-3 space-y-3">
-              {displayed.length === 0 && (
-                <p className="text-center text-gray-400 py-8">
-                  {activeTab === 'active' ? 'No active alerts 🎉' : 'No history yet'}
-                </p>
-              )}
-              {displayed.map((n, i) => {
-                const borderColor = n.type === 'temperature' ? 'border-orange-400'
-                  : n.type === 'humidity' ? 'border-blue-400'
-                  : n.type === 'ammonia' ? 'border-yellow-400'
-                  : 'border-green-400';
-                const label = n.type === 'temperature' ? 'Temperature Alert'
-                  : n.type === 'humidity' ? 'Humidity Alert'
-                  : n.type === 'ammonia' ? 'Ammonia Alert'
-                  : n.type === 'system' ? 'System Alert'
-                  : 'CO₂ Alert';
-
-                return (
-                  <div key={i} className={`border-l-4 ${borderColor} pl-4 py-3 bg-gray-50 rounded-r-lg`}>
-                    <div className="flex items-center justify-between">
-                      <span className="font-semibold text-gray-800 text-sm">{label}</span>
-                      <span className="text-xs text-gray-400">{new Date(n.time).toLocaleString()}</span>
-                    </div>
-                    <p className="text-sm text-gray-600 mt-1">{n.message}</p>
-                  </div>
-                );
-              })}
-            </div>
-          </>
-        );
-      })()}
-    </div>
-  </div>,
+     {showNotifications && createPortal(
+  <NotificationModal
+    notifications={notifications}
+    setNotifications={setNotifications}
+    onClose={() => setShowNotifications(false)}
+  />,
   document.body
 )}
 
