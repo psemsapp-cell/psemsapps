@@ -143,6 +143,8 @@ Thank you for using PSEMS.
   });
 
   useEffect(() => {
+    if (!apiUrl) return;
+    
     const params = new URLSearchParams(
       Object.entries(forecastFilters).filter(([_, v]) => v !== '')
     ).toString();
