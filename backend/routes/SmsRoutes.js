@@ -1,6 +1,7 @@
 const express = require('express');
 const axios = require('axios');
 const router = express.Router();
+const verifyToken = require('../middleware/authMiddleware'); // 👈 import
 
 require('dotenv').config();
 

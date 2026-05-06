@@ -10,9 +10,10 @@ exports.getDailyLogs = (req, res) => {
 
 // 📥 Get daily logs by User ID
 exports.getDailyLogsByUserId = (req, res) => {
-  const userId = req.params.user_id;
+  const userId = req.user.id;   // 👈 from token, not URL
+  const role = req.user.role;   // 👈 from token
 
-  DailyLog.getByUserId(userId, (err, results) => {
+  DailyLog.getByUserId(userId, role, (err, results) => {
     if (err) {
       console.error('Database error:', err);
       return res.status(500).json({ error: 'Internal server error' });

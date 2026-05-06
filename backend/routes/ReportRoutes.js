@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../config/db');
+const verifyToken = require('../middleware/authMiddleware'); // 👈 import
 
 router.get('/batch-report', (req, res) => {
   const userId = req.query.user_id ? Number(req.query.user_id) : null;

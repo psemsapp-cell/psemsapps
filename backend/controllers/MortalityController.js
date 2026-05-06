@@ -10,9 +10,10 @@ exports.getMortalities = (req, res) => {
 
 // 📥 Get mortality records by User ID
 exports.getMortalitiesByUserId = (req, res) => {
-  const userId = req.params.user_id;
+  const userId = req.user.id;   // 👈 from token, not URL
+  const role = req.user.role;   // 👈 from token
 
-  Mortality.getByUserId(userId, (err, results) => {
+  Mortality.getByUserId(userId, role, (err, results) => {
     if (err) {
       console.error('Database error:', err);
       return res.status(500).json({ error: 'Internal server error' });

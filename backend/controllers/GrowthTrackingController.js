@@ -10,9 +10,10 @@ exports.getAllGrowth = (req, res) => {
 
 // 📥 Get growth tracking records by User ID
 exports.getGrowthByUserId = (req, res) => {
-  const userId = req.params.user_id;
+  const userId = req.user.id;   // 👈 from token, not URL
+  const role = req.user.role;   // 👈 from token
 
-  GrowthTracking.getByUserId(userId, (err, results) => {
+  GrowthTracking.getByUserId(userId, role, (err, results) => {
     if (err) {
       console.error('Database error:', err);
       return res.status(500).json({ error: 'Internal server error' });

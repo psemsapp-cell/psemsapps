@@ -1,28 +1,29 @@
 const express = require('express');
 const router = express.Router();
 const controller = require('../controllers/BarnController');
-const db = require('../config/db'); // ← ADD THIS LINE
+const db = require('../config/db');
+const verifyToken = require('../middleware/authMiddleware'); // 👈 import
 
 // 🟢 Add a new barn
-router.post('/add_barn', controller.addBarn);
+router.post('/add_barn', verifyToken, controller.addBarn);
 
 // 🟢 Get all barns
-router.get('/', controller.getBarns);
+router.get('/', verifyToken, controller.getBarns);
 
 // 🟢 Get barns by user_id
-router.get('/user_barn/:user_id', controller.getBarnsByUserId);
+router.get('/user_barn/:user_id', verifyToken, controller.getBarnsByUserId);
 
 // 🟢 Get a single barn by its ID
-router.get('/:id', controller.getBarnById);
+router.get('/:id', verifyToken, controller.getBarnById);
 
 // 🟢 Update barn by ID
-router.put('/:id', controller.updateBarn);
+router.put('/:id', verifyToken, controller.updateBarn);
 
 // 🟢 Delete barn by ID
-router.delete('/:id', controller.deleteBarn);
+router.delete('/:id', verifyToken, controller.deleteBarn);
 
-router.get('/availability/by-batch/:batchId', controller.getAvailabilityByBatchId);
-router.get('/:barn_id/remaining-capacity', (req, res) => {
+router.get('/availability/by-batch/:batchId', verifyToken, controller.getAvailabilityByBatchId);
+router.get('/:barn_id/remaining-capacity', verifyToken, (req, res) => {
   const { barn_id } = req.params;
   const { user_id } = req.query;
 
@@ -41,4 +42,5 @@ router.get('/:barn_id/remaining-capacity', (req, res) => {
     res.json({ total_chickens, already_logged, remaining: Math.max(0, total_chickens - already_logged) });
   });
 });
+
 module.exports = router;

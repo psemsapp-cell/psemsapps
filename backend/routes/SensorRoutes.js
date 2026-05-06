@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../config/db'); // MySQL connection
+const verifyToken = require('../middleware/authMiddleware'); // 👈 import
 
 // Helper function to maintain 20 rows per user
 function maintainLimit(table, user_id, callback) {

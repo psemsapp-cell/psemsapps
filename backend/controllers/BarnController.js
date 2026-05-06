@@ -80,9 +80,10 @@ exports.getBarns = (req, res) => {
 
 // 📥 Get Barns by User ID
 exports.getBarnsByUserId = (req, res) => {
-  const userId = req.params.user_id;
+  const userId = req.user.id;   // 👈 from token, not URL
+  const role = req.user.role;   // 👈 from token
 
-  Barn.getByUserId(userId, (err, results) => {
+  Barn.getByUserId(userId, role, (err, results) => {
     if (err) {
       console.error('Database error:', err);
       return res.status(500).json({ error: 'Internal server error' });
