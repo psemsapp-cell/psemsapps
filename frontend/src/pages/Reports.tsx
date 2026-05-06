@@ -17,6 +17,8 @@ const db = getDatabase(firebaseApp);
 
 interface Forecast {
   month: string;
+  batchId: number;
+  batch: string;
   actualMortality: number;
   predictedMortality: number;
   actualHarvest: number;
@@ -137,11 +139,13 @@ const Reports: React.FC = () => {
       const arr = Array.isArray(data) ? data : [];
       const mapped: Forecast[] = arr.map((item: any) => ({
         month:              item.month ?? item.month_year ?? '',
+        batchId:            Number(item.batchId ?? item.batch_id ?? 0),
+        batch:              item.batch ?? item.batch_name ?? '',
         actualMortality:    Number(item.actualMortality    ?? item.actual_mortality    ?? 0),
         predictedMortality: Number(item.predictedMortality ?? item.predicted_mortality ?? 0),
         actualHarvest:      Number(item.actualHarvest      ?? item.actual_harvest      ?? 0),
         predictedHarvest:   Number(item.predictedHarvest   ?? item.predicted_harvest   ?? 0),
-      }));
+      })); 
       setForecastData(mapped);
     } catch (err) {
       console.error('Error fetching forecast:', err);
