@@ -1,0 +1,20 @@
+[33m5a8d9b1[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m Reapply "fix: remove IIFE from notification modal to fix React error 310"
+[33mbd20f8d[m Revert "fix: remove IIFE from notification modal to fix React error 310"
+[33md467019[m fix: remove IIFE from notification modal to fix React error 310
+[33mb1854bf[m fix: force new asset filenames to bust Railway cache
+[33m0b4f7e9[m fix: remove user_id filter from MortalityModel and DailyLogsModel
+[33m462b4b7[m force rebuild: fix React hooks error in notification modal
+[33m5cfbe4f[m fix: add missing closing tags to notification portal
+[33m4ad605a[m revert: undo user_id filter removal that broke the system
+[33m6add639[m fix: remove user_id filter from all controllers so staff sees all data
+[33m3305864[m fix: remove user_id filter so staff can see all data
+[33ma320e82[m fix: rename unused sensorData param to suppress TS error
+[33m53ee10a[m fix: add apiUrl guard to dashboard forecast fetch
+[33ma640ebe[m fix: add batchId and batch name to forecast mapping and interface
+[33m0111759[m fix: batch filter show names, fix SMS function closing braces
+[33mdfd1c2c[m fix: add initial value to forecast summary reduce
+[33m3e44efb[m fix: forecast summary now sums all batches for selected month
+[33m6815209[m fix: rewrite SmsRoutes
+[33mfe53a8d[m fix: add json middleware to sms route
+[33m700390c[m fix: add json middleware to sms route
+[33m1f53f7a[m fix: clean up server.js
