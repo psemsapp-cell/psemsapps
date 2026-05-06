@@ -285,7 +285,7 @@ Thank you for using PSEMS.
     };
   }, []);
 
-const getAlertCount = (sensorData: any) => {
+const getAlertCount = () => {
   return notifications.filter(n => n.isActive !== false).length;
 };
 
@@ -301,10 +301,10 @@ const getAlertCount = (sensorData: any) => {
         <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Dashboard</h1>
         <div className="relative">
           <Bell className="h-6 w-6 text-gray-600 cursor-pointer" onClick={toggleNotifications} />
-          {getAlertCount(sensorData) > 0 && (
+          {getAlertCount() > 0 && (
             <>
               <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs font-bold rounded-full px-1.5">
-                {getAlertCount(sensorData)}
+                {getAlertCount()}
               </span>
               <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full animate-ping"></span>
             </>
