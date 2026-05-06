@@ -337,7 +337,7 @@ const Reports: React.FC = () => {
     predictedMortality: (acc.predictedMortality ?? 0) + (f.predictedMortality ?? 0),
     actualHarvest: (acc.actualHarvest ?? 0) + (f.actualHarvest ?? 0),
     predictedHarvest: (acc.predictedHarvest ?? 0) + (f.predictedHarvest ?? 0),
-  }));
+  }), { month: '', actualMortality: 0, predictedMortality: 0, actualHarvest: 0, predictedHarvest: 0 });
 }, [forecastData, selectedMonth]);
 
   const batchSummaryReport = useMemo(() => {
