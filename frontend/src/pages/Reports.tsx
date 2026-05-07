@@ -331,11 +331,9 @@ const Reports: React.FC = () => {
     f.month && String(f.month).startsWith(selectedMonth)
   );
 
-  const source = filtered.length > 0 ? filtered : forecastData;
+  if (filtered.length === 0) return null;
 
-  if (source.length === 0) return null;
-
-  return source.reduce((acc, f) => ({
+return filtered.reduce((acc, f) => ({
     month: f.month,
     actualMortality: (acc.actualMortality ?? 0) + (f.actualMortality ?? 0),
     predictedMortality: (acc.predictedMortality ?? 0) + (f.predictedMortality ?? 0),
