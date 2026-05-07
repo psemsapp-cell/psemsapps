@@ -15,21 +15,32 @@ exports.getAll = (callback) => {
 };
 
 // 🔹 Get harvest records for a specific user with batch_name
-exports.getByUserId = (userId, callback) => {
-  const sql = `
+exports.getByUserId = (userId, role, callback) => {
+  let sql = `
     SELECT
       h.id,
       h.user_id,
       h.batch_id,
-      b.batch_name,         -- ✅ from tbl_batch
+      b.batch_name,
       h.date,
       h.no_harvest,
       h.no_boxes
     FROM tbl_harvest AS h
     JOIN tbl_batch AS b
-      ON h.batch_id = b.id 
-    WHERE h.user_id = ?
+      ON h.batch_id = b.id
+    WHERE 1=1
   `;
+
+  const params = [];
+
+  // Only filter by user_id if NOT admin or staff
+  if (role !== 'admin' && role !== 'staff') {
+    sql += ` AND h.user_id = ?`;
+    params.push(userId);
+  }
+
+  db.query(sql, params, callback);
+};
 
   db.query(sql, [userId], (err, results) => {
     if (err) {
@@ -38,7 +49,6 @@ exports.getByUserId = (userId, callback) => {
     }
     callback(null, results);
   });
-};
 
 
 // 🔹 Get a single harvest record by ID

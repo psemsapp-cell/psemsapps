@@ -7,8 +7,8 @@ exports.getAll = (callback) => {
 };
 
 // 🔹 Get barns for a specific user
-exports.getByUserId = (userId, callback) => {
-  const sql = `
+exports.getByUserId = (userId, role, callback) => {
+  let sql = `
     SELECT
       id,
       barn_name,
@@ -16,8 +16,18 @@ exports.getByUserId = (userId, callback) => {
       date,
       user_id
     FROM tbl_barn
-    WHERE user_id = ?
+    WHERE 1=1
   `;
+
+  const params = [];
+
+  if (role !== 'admin' && role !== 'staff') {
+    sql += ` AND user_id = ?`;
+    params.push(userId);
+  }
+
+  db.query(sql, params, callback);
+};
 
   db.query(sql, [userId], (err, results) => {
     if (err) {
@@ -26,7 +36,6 @@ exports.getByUserId = (userId, callback) => {
     }
     callback(null, results);
   });
-};
 
 
 // 🔹 Get a single barn by ID
