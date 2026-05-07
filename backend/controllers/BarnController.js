@@ -81,21 +81,19 @@ exports.getBarns = (req, res) => {
 // 📥 Get Barns by User ID
 exports.getBarnsByUserId = (req, res) => {
   const userId = req.params.user_id;
+  const role = req.query.role || '';
 
-  Barn.getByUserId(userId, (err, results) => {
+  Barn.getByUserId(userId, role, (err, results) => {
     if (err) {
       console.error('Database error:', err);
       return res.status(500).json({ error: 'Internal server error' });
     }
-
     if (results.length === 0) {
       return res.status(404).json({ message: 'No barns found for this user' });
     }
-
     res.status(200).json(results);
   });
 };
-
 
 // 🔍 Get Barn by ID
 exports.getBarnById = (req, res) => {
