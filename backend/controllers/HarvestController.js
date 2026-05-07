@@ -12,8 +12,9 @@ exports.getHarvests = (req, res) => {
 // 📥 Get Harvest records by User ID
 exports.getHarvestsByUserId = (req, res) => {
   const userId = req.params.user_id;
+  const role = req.query.role || '';
 
-  Harvest.getByUserId(userId, (err, results) => {
+  Harvest.getByUserId(userId, role, (err, results) => {
     if (err) {
       console.error('Database error:', err);
       return res.status(500).json({ error: 'Internal server error' });
