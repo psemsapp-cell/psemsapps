@@ -1,3 +1,5 @@
+const db = require('../config/db'); // ✅ this line was missing!
+
 exports.getByUser = (user_id, role, callback) => {
   const sql = `
     SELECT 
@@ -12,6 +14,5 @@ exports.getByUser = (user_id, role, callback) => {
     LEFT JOIN tbl_barn b ON m.barn_id = b.id
     WHERE m.user_id = ?
   `;
-
   db.query(sql, [user_id], callback);
 };
