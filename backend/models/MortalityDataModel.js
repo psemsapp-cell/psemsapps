@@ -1,13 +1,12 @@
 exports.getByUser = (user_id, role, callback) => {
-  let sql = `
+  const sql = `
     SELECT 
       m.id,
       m.barn_id,
       m.quantity,
       m.cause,
       u.full_name,
-      b.barn_name,
-      m.date
+      b.barn_name
     FROM tbl_mortality m
     LEFT JOIN tbl_user  u  ON m.user_id  = u.id
     LEFT JOIN tbl_barn b ON m.barn_id = b.id
