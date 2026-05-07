@@ -42,15 +42,6 @@ exports.getByUserId = (userId, role, callback) => {
   db.query(sql, params, callback);
 };
 
-  db.query(sql, [userId], (err, results) => {
-    if (err) {
-      console.error('Database error in getByUserId:', err);
-      return callback(err);
-    }
-    callback(null, results);
-  });
-
-
 // 🔹 Get a single harvest record by ID
 exports.getById = (id, callback) => {
   const sql = 'SELECT * FROM tbl_harvest WHERE id = ?';
